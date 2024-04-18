@@ -1,7 +1,8 @@
 #pragma once
 
-#include "wrappers.h"
+#include <assert.h>
 #include <msclr\auto_gcroot.h>
+#include "wrappers.h"
 
 using namespace msclr;
 using namespace System::Collections;
@@ -10,13 +11,12 @@ using namespace System::Collections;
 
 struct IEnumeratorReference
 {
-public:
 	IEnumeratorReference(IEnumerator^ underlying) : m_underlying(underlying) {}
 
 	IEnumerator^ get() { return this->m_underlying.get(); }
 
 private:
-	auto_gcroot<IEnumerator^> m_underlying;
+	const auto_gcroot<IEnumerator^> m_underlying;
 };
 
 // ==========================================
@@ -25,7 +25,6 @@ private:
 
 struct IEnumerableReference
 {
-public:
 	IEnumerableReference(IEnumerable^ underlying) : m_underlying(underlying) {}
 
 	IEnumerable^ get() { return this->m_underlying.get(); }
@@ -36,7 +35,7 @@ public:
 	}
 
 private:
-	auto_gcroot<IEnumerable^> m_underlying;
+	const auto_gcroot<IEnumerable^> m_underlying;
 };
 
 // ==========================================

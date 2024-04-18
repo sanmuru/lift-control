@@ -117,59 +117,57 @@ public class ScheduleTests
         ], [11, 4, 16, 32, 42, 54, 78, 84, 96, 98, 91, 83, 78, 77, 73, 46, 40, 37, 19]);
     }
 
-    private static void VerifySchedule(Lift lift, IEnumerable<GuestTask> tasks, IEnumerable<int> schedule)
+    private static void VerifySchedule(Lift lift, IEnumerable<GuestTask> tasks, IEnumerable<int>? schedule = null)
     {
         foreach (var (fromFloor, toFloor) in tasks)
         {
             lift.Add(fromFloor, toFloor);
         }
-        Assert.Equal(schedule, lift.GetSchedule().Select(tuple => tuple.floor));
-    }
 
-    private static void VerifySchedule(Lift lift, IEnumerable<GuestTask> tasks)
-    {
-        var outList = new HashSet<GuestTask>(tasks);
-        var inList = new HashSet<GuestTask>();
-
-        foreach (var (fromFloor, toFloor) in tasks)
+        if (schedule is not null)
         {
-            lift.Add(fromFloor, toFloor);
+            Assert.Equal(schedule, lift.GetSchedule().Select(tuple => tuple.floor));
         }
-
-        int previousFloor = lift.AtFloor;
-        Lift.Direction previousDirection = default;
-        int directionChanged = 0;
-        foreach (var (floor, direction) in lift.GetSchedule())
+        else
         {
-            var enter = (from task in outList
-                         let guestDirection = Lift.GetDirection(task.fromFloor, task.toFloor)
-                         let canEnter = guestDirection == direction
-                         where task.fromFloor == floor && canEnter
-                         select task).ToArray();
-            var leave = (from task in inList where task.toFloor == floor select task).ToArray();
-            Assert.True(enter.Length != 0 || leave.Length != 0); // otherwise the stop makes no sense.
+            var outList = new HashSet<GuestTask>(tasks);
+            var inList = new HashSet<GuestTask>();
 
-            inList.ExceptWith(leave);
-            inList.UnionWith(enter);
-            outList.ExceptWith(enter);
+            int previousFloor = lift.AtFloor;
+            Lift.Direction previousDirection = default;
+            int directionChanged = 0;
+            foreach (var (floor, direction) in lift.GetSchedule())
+            {
+                var enter = (from task in outList
+                             let guestDirection = Lift.GetDirection(task.fromFloor, task.toFloor)
+                             let canEnter = guestDirection == direction
+                             where task.fromFloor == floor && canEnter
+                             select task).ToArray();
+                var leave = (from task in inList where task.toFloor == floor select task).ToArray();
+                Assert.True(enter.Length != 0 || leave.Length != 0); // otherwise the stop makes no sense.
 
-            if (directionChanged == 0)
-            {
-                directionChanged = 1; // initialize.
-            }
-            else
-            {
-                if (previousDirection != default && direction != default && previousDirection != direction)
+                inList.ExceptWith(leave);
+                inList.UnionWith(enter);
+                outList.ExceptWith(enter);
+
+                if (directionChanged == 0)
                 {
-                    directionChanged++;
-                    Assert.False(directionChanged > 3); // too many passes, not optimistic.
+                    directionChanged = 1; // initialize.
                 }
+                else
+                {
+                    if (previousDirection != default && direction != default && previousDirection != direction)
+                    {
+                        directionChanged++;
+                        Assert.False(directionChanged > 3); // too many passes, not optimistic.
+                    }
+                }
+                previousDirection = direction;
+                previousFloor = floor;
             }
-            previousDirection = direction;
-            previousFloor = floor;
-        }
 
-        Assert.Empty(outList);
-        Assert.Empty(inList);
+            Assert.Empty(outList);
+            Assert.Empty(inList);
+        }
     }
 }

@@ -1,8 +1,9 @@
 ﻿using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
-using LiftTask = (int floor, LiftControl.Lift.Direction direction);
 
-namespace LiftControl;
+namespace LiftControl.Generation1;
+
+using LiftTask = (int floor, Lift.Direction direction);
 
 internal class Lift(int atFloor = 0)
 {

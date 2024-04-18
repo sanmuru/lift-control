@@ -6,12 +6,12 @@ using namespace System::Runtime::CompilerServices;
 using namespace System::Runtime::InteropServices;
 using namespace System::Security::Permissions;
 
-[assembly:AssemblyTitleAttribute(L"LiftControlTestResourcesInterop")];
+[assembly:AssemblyTitleAttribute(L"LiftControl.TestResources.Interop")];
 [assembly:AssemblyDescriptionAttribute(L"")];
 [assembly:AssemblyConfigurationAttribute(L"")];
 [assembly:AssemblyCompanyAttribute(L"")];
-[assembly:AssemblyProductAttribute(L"LiftControlTestResourcesInterop")];
-[assembly:AssemblyCopyrightAttribute(L"版权所有(c)  2024")];
+[assembly:AssemblyProductAttribute(L"LiftControl.TestResources.Interop")];
+[assembly:AssemblyCopyrightAttribute(L"版权所有(c) Sam Lu 2024")];
 [assembly:AssemblyTrademarkAttribute(L"")];
 [assembly:AssemblyCultureAttribute(L"")];
 

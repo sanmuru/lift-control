@@ -1,34 +1,40 @@
 #include "pch.h"
 #include <assert.h>
-#include "GuestTask.h"
+#include "ScheduleTestData.h"
 #include "wrappers.internal.h"
 
 using namespace System;
 using namespace LiftControl::UnitTests::Interop;
 
-static GuestTask* WrapGuestTask(Object^ obj)
+ScheduleTestData::entry* WrapScheduleTestDataEntry(Object^ obj)
 {
-	auto tuple = (ValueTuple<int, int>^)obj;
-	return new GuestTask(tuple->Item1, tuple->Item2);
+	auto args = (array<Object^>^)obj;
+	auto atFloor = (int)args[0];
+	auto tasks = (IEnumerable^)args[1];
+	auto schedule = args->Length == 2 ? nullptr : (IEnumerable^)args[2];
+	return new ScheduleTestDataEntry(
+		atFloor,
+		new IEnumerableReference(tasks),
+		nullptr == schedule ? nullptr : new IEnumerableReference(schedule));
 }
 
-GuestTaskSequence::GuestTaskSequence(IEnumerableReference* pRef)
+ScheduleTestData::ScheduleTestData(IEnumerableReference* pRef)
 {
 	assert(nullptr != pRef);
 	this->m_pRef = std::shared_ptr<IEnumerableReference>(pRef);
 }
 
-GuestTaskSequence::~GuestTaskSequence()
+ScheduleTestData::~ScheduleTestData()
 {
 	this->m_pRef.reset();
 }
 
-GuestTaskSequence::iterator GuestTaskSequence::begin()
+ScheduleTestData::iterator ScheduleTestData::begin()
 {
 	return this->m_pRef->getEnumerator();
 }
 
-GuestTaskIterator::GuestTaskIterator(IEnumeratorReference* pRef, GuestTaskIterator::difference_type version)
+ScheduleTestDataIterator::ScheduleTestDataIterator(IEnumeratorReference* pRef, ScheduleTestDataIterator::difference_type version)
 {
 	assert(version <= IEnumeratorVersion_End || nullptr != pRef);
 	this->m_pRef = std::shared_ptr<IEnumeratorReference>(pRef);
@@ -43,13 +49,13 @@ GuestTaskIterator::GuestTaskIterator(IEnumeratorReference* pRef, GuestTaskIterat
 	this->m_current = nullptr;
 }
 
-GuestTaskIterator::~GuestTaskIterator()
+ScheduleTestDataIterator::~ScheduleTestDataIterator()
 {
 	this->m_current.reset();
 	this->m_pRef.reset();
 }
 
-GuestTaskIterator& GuestTaskIterator::operator++() noexcept
+ScheduleTestDataIterator& ScheduleTestDataIterator::operator++() noexcept
 {
 	if (this->m_version >= IEnumeratorVersion_Min) // not at end
 	{
@@ -68,20 +74,15 @@ GuestTaskIterator& GuestTaskIterator::operator++() noexcept
 	return *this;
 }
 
-GuestTaskIterator::reference GuestTaskIterator::operator*() noexcept
+ScheduleTestDataIterator::reference ScheduleTestDataIterator::operator*() noexcept
 {
-	if (this->m_version == IEnumeratorVersion_End)
-		assert(0 ==IEnumeratorVersion_End);
-	else if (this->m_version == IEnumeratorVersion_Init)
-		assert(this->m_version != IEnumeratorVersion_Init);
-	else
 	assert(this->m_version >= IEnumeratorVersion_Min);
 	assert(this->m_pRef);
 	if (!this->m_current)
 	{
-		this->m_current = std::unique_ptr<value_type>(WrapGuestTask(this->m_pRef->get()->Current));
+		this->m_current = std::unique_ptr<value_type>(WrapScheduleTestDataEntry(this->m_pRef->get()->Current));
 	}
 	assert(this->m_current);
 
-	return *this->m_current;
+	return *(this->m_current);
 }

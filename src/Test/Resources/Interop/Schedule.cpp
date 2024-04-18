@@ -1,34 +1,27 @@
 #include "pch.h"
 #include <assert.h>
-#include "GuestTask.h"
+#include "Schedule.h"
 #include "wrappers.internal.h"
 
-using namespace System;
 using namespace LiftControl::UnitTests::Interop;
 
-static GuestTask* WrapGuestTask(Object^ obj)
-{
-	auto tuple = (ValueTuple<int, int>^)obj;
-	return new GuestTask(tuple->Item1, tuple->Item2);
-}
-
-GuestTaskSequence::GuestTaskSequence(IEnumerableReference* pRef)
+Schedule::Schedule(IEnumerableReference* pRef)
 {
 	assert(nullptr != pRef);
 	this->m_pRef = std::shared_ptr<IEnumerableReference>(pRef);
 }
 
-GuestTaskSequence::~GuestTaskSequence()
+Schedule::~Schedule()
 {
 	this->m_pRef.reset();
 }
 
-GuestTaskSequence::iterator GuestTaskSequence::begin()
+Schedule::iterator Schedule::begin()
 {
 	return this->m_pRef->getEnumerator();
 }
 
-GuestTaskIterator::GuestTaskIterator(IEnumeratorReference* pRef, GuestTaskIterator::difference_type version)
+ScheduleIterator::ScheduleIterator(IEnumeratorReference* pRef, ScheduleIterator::difference_type version)
 {
 	assert(version <= IEnumeratorVersion_End || nullptr != pRef);
 	this->m_pRef = std::shared_ptr<IEnumeratorReference>(pRef);
@@ -40,16 +33,16 @@ GuestTaskIterator::GuestTaskIterator(IEnumeratorReference* pRef, GuestTaskIterat
 	{
 		this->m_version = version;
 	}
-	this->m_current = nullptr;
+	this->m_current = std::unique_ptr<value_type>(nullptr);
 }
 
-GuestTaskIterator::~GuestTaskIterator()
+ScheduleIterator::~ScheduleIterator()
 {
 	this->m_current.reset();
 	this->m_pRef.reset();
 }
 
-GuestTaskIterator& GuestTaskIterator::operator++() noexcept
+ScheduleIterator& ScheduleIterator::operator++() noexcept
 {
 	if (this->m_version >= IEnumeratorVersion_Min) // not at end
 	{
@@ -68,18 +61,14 @@ GuestTaskIterator& GuestTaskIterator::operator++() noexcept
 	return *this;
 }
 
-GuestTaskIterator::reference GuestTaskIterator::operator*() noexcept
+ScheduleIterator::reference ScheduleIterator::operator*() noexcept
 {
-	if (this->m_version == IEnumeratorVersion_End)
-		assert(0 ==IEnumeratorVersion_End);
-	else if (this->m_version == IEnumeratorVersion_Init)
-		assert(this->m_version != IEnumeratorVersion_Init);
-	else
 	assert(this->m_version >= IEnumeratorVersion_Min);
 	assert(this->m_pRef);
 	if (!this->m_current)
 	{
-		this->m_current = std::unique_ptr<value_type>(WrapGuestTask(this->m_pRef->get()->Current));
+		auto current = (int)this->m_pRef->get()->Current;
+		this->m_current = std::make_unique<int>(current);
 	}
 	assert(this->m_current);
 

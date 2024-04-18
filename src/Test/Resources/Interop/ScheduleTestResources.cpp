@@ -7,86 +7,28 @@
 using namespace System;
 using namespace LiftControl::UnitTests::Interop;
 
-static IEnumerableReference* WrapGuestTasks(IEnumerable^ tasks)
+static ScheduleTestData WrapScheduleTestData(IEnumerable^ enumerable)
 {
-	return new IEnumerableReference(tasks);
+	return new IEnumerableReference(enumerable);
 }
 
-static IEnumerableReference* WrapSchedule(IEnumerable^ schedule)
+ScheduleTestData ScheduleTestResources::GetSingleTaskTestData()
 {
-	return new IEnumerableReference(schedule);
+	return WrapScheduleTestData(LiftControl::UnitTests::ScheduleTestResources::GetSingleTaskTestData());
 }
 
-static ScheduleTestData* WrapScheduleTestData(IEnumerator^ data)
+ScheduleTestData ScheduleTestResources::GetDoubleTasksTestData()
 {
-	return new ScheduleTestData(new IEnumeratorReference(data));
+	return WrapScheduleTestData(LiftControl::UnitTests::ScheduleTestResources::GetDoubleTasksTestData());
 }
 
-ScheduleIterator::~ScheduleIterator()
-{
-	delete this->m_pRef;
-}
-int ScheduleIterator::current()
-{
-	return (int)this->m_pRef->get()->Current;
-}
-bool ScheduleIterator::moveNext()
-{
-	return this->m_pRef->get()->MoveNext();
-}
-
-ScheduleTestDataEntry::~ScheduleTestDataEntry()
-{
-	delete this->m_tasks;
-	if (this->m_schedule != nullptr)
-	{
-		delete this->m_schedule;
-	}
-}
-GuestTaskIterator* ScheduleTestDataEntry::getTasks()
-{
-	return new GuestTaskIterator(this->m_tasks->getEnumerator());
-}
-ScheduleIterator* ScheduleTestDataEntry::getSchedule()
-{
-	assert(this->m_schedule != nullptr);
-	return new ScheduleIterator(this->m_schedule->getEnumerator());
-}
-
-ScheduleTestData::~ScheduleTestData()
-{
-	delete this->m_pRef;
-}
-ScheduleTestDataEntry* ScheduleTestData::current()
-{
-	auto entry = (array<Object^>^)this->m_pRef->get()->Current;
-	auto atFloor = (int)entry[0];
-	auto tasks = WrapGuestTasks((IEnumerable^)entry[1]);
-	auto schedule = entry->Length <= 2 ? nullptr : WrapSchedule((IEnumerable^)entry[2]);
-	return new ScheduleTestDataEntry(atFloor, tasks, schedule);
-}
-bool ScheduleTestData::moveNext()
-{
-	return this->m_pRef->get()->MoveNext();
-}
-
-ScheduleTestData* ScheduleTestResources::GetSingleTaskTestData()
-{
-	return WrapScheduleTestData(LiftControl::UnitTests::ScheduleTestResources::GetSingleTaskTestData()->GetEnumerator());
-}
-
-ScheduleTestData* ScheduleTestResources::GetDoubleTasksTestData()
-{
-	return WrapScheduleTestData(LiftControl::UnitTests::ScheduleTestResources::GetDoubleTasksTestData()->GetEnumerator());
-}
-
-ScheduleTestData* ScheduleTestResources::GetRandomTasksTestData(
-	int sampleCount,
-	int minLevelCount, int maxLevelCount,
-	int minGuestCount, int maxGuestCount)
+ScheduleTestData ScheduleTestResources::GetRandomTasksTestData(
+	int sample_count,
+	int min_level_count, int max_level_count,
+	int min_guest_count, int max_uest_count)
 {
 	return WrapScheduleTestData(LiftControl::UnitTests::ScheduleTestResources::GetRandomTaskTestData(
-		sampleCount,
-		minLevelCount, maxLevelCount,
-		minGuestCount, maxGuestCount)->GetEnumerator());
+		sample_count,
+		min_level_count, max_level_count,
+		min_guest_count, max_uest_count));
 }

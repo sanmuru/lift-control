@@ -5,13 +5,7 @@
 
 using namespace LiftControl;
 
-static Direction GetDirection(int fromFloor, int atFloor)
-{
-	assert(fromFloor != atFloor);
-	return fromFloor < atFloor ? Direction::Up : Direction::Down;
-}
-
-vector<LiftTask> Lift::GetSchedule()
+vector<LiftTask> Lift::get_schedule()
 {
     vector<LiftTask> result;
     if (NULL == this->m_direction)
@@ -25,7 +19,7 @@ vector<LiftTask> Lift::GetSchedule()
         assert(nullptr != this->m_pass3);
     }
 
-    int previousFloor = 0;
+    int previous_floor = 0;
     bool flag = false;
     auto pass = this->m_pass1;
     LoopStart:
@@ -34,15 +28,15 @@ vector<LiftTask> Lift::GetSchedule()
         if (false == flag)
         {
             flag = true;
-            previousFloor = floor;
+            previous_floor = floor;
             continue;
         }
-        else if (previousFloor == floor)
+        else if (previous_floor == floor)
         {
             continue;
         }
-        result.push_back(LiftTask(previousFloor, GetDirection(previousFloor, floor)));
-        previousFloor = floor;
+        result.push_back(LiftTask(previous_floor, GetDirection(previous_floor, floor)));
+        previous_floor = floor;
     }
     if (pass == this->m_pass1)
     {
@@ -57,49 +51,49 @@ vector<LiftTask> Lift::GetSchedule()
     else
     {
         assert(pass = this->m_pass3);
-        result.push_back(LiftTask(previousFloor, (Direction)NULL));
+        result.push_back(LiftTask(previous_floor, (Direction)NULL));
     }
 
     return result;
 }
 
-void Lift::Add(int fromFloor, int toFloor)
+void Lift::add(int from_floor, int to_floor)
 {
 	if (NULL == this->m_direction)
 	{
-		this->Initialize(fromFloor, toFloor);
+		this->initialize(from_floor, to_floor);
 	}
 
-	auto guestDirection = GetDirection(fromFloor, toFloor);
+	auto guestDirection = GetDirection(from_floor, to_floor);
     if (this->m_direction == guestDirection)
     {
-        if (this->m_atFloor == fromFloor || this->m_direction == GetDirection(this->m_atFloor, fromFloor))
+        if (this->m_atFloor == from_floor || this->m_direction == GetDirection(this->m_atFloor, from_floor))
         {
-            this->m_pass1->insert(fromFloor);
-            this->m_pass1->insert(toFloor);
+            this->m_pass1->insert(from_floor);
+            this->m_pass1->insert(to_floor);
         }
         else
         {
-            assert(this->m_direction == GetDirection(fromFloor, this->m_atFloor));
-            this->m_pass3->insert(fromFloor);
-            this->m_pass3->insert(toFloor);
+            assert(this->m_direction == GetDirection(from_floor, this->m_atFloor));
+            this->m_pass3->insert(from_floor);
+            this->m_pass3->insert(to_floor);
         }
     }
     else
     {
         assert(this->m_direction != guestDirection);
-        this->m_pass2->insert(fromFloor);
-        this->m_pass2->insert(toFloor);
+        this->m_pass2->insert(from_floor);
+        this->m_pass2->insert(to_floor);
     }
 }
 
-void Lift::Initialize(int fromFloor, int toFloor)
+void Lift::initialize(int from_floor, int to_floor)
 {
-	auto guestDirection = GetDirection(fromFloor, toFloor);
-	this->m_direction = this->m_atFloor == fromFloor ? guestDirection : GetDirection(this->m_atFloor, fromFloor);
-	FloorComparer comparer(this->m_direction), reversedComparer = comparer.reverse();
+	auto guest_direction = GetDirection(from_floor, to_floor);
+	this->m_direction = this->m_atFloor == from_floor ? guest_direction : GetDirection(this->m_atFloor, from_floor);
+	FloorComparer comparer(this->m_direction), reversed_comparer = comparer.reverse();
 	this->m_pass1 = new set<int, FloorComparer>(comparer);
-	this->m_pass2 = new set<int, FloorComparer>(reversedComparer);
+	this->m_pass2 = new set<int, FloorComparer>(reversed_comparer);
 	this->m_pass3 = new set<int, FloorComparer>(comparer);
 }
 

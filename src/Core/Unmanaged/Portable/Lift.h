@@ -1,5 +1,6 @@
 #pragma once
 
+#include <assert.h>
 #include <queue>
 #include <set>
 
@@ -13,17 +14,21 @@ using namespace std;
 
 namespace LiftControl
 {
+	enum Direction { UP = 1, DOWN = -1 };
 
-	enum Direction { Up = 1, Down = -1 };
+	static Direction GetDirection(int from_floor, int at_floor)
+	{
+		assert(from_floor != at_floor);
+		return from_floor < at_floor ? Direction::UP : Direction::DOWN;
+	}
 
 	struct FloorComparer
 	{
-	public:
 		explicit FloorComparer(Direction d) : m_direction(d) {}
 
 		bool operator()(const int& i1, const int& i2) const
 		{
-			if (Direction::Up == this->m_direction)
+			if (Direction::UP == this->m_direction)
 			{
 				return i1 < i2;
 			}
@@ -39,14 +44,13 @@ namespace LiftControl
 		}
 
 	private:
-		Direction m_direction;
+		const Direction m_direction;
 	};
 
 	struct LiftTask
 	{
-	public:
-		int floor;
-		Direction direction;
+		const int floor;
+		const Direction direction;
 	};
 
 	class LIFTCONTROL_API Lift
@@ -60,11 +64,11 @@ namespace LiftControl
 		{}
 		~Lift();
 
-		void Add(int fromFloor, int toFloor);
+		void add(int from_floor, int to_floor);
 
 #if _DEBUG
-		int AtFloor() { return this->m_atFloor; }
-		vector<LiftTask> GetSchedule();
+		int get_at_floor() { return this->m_atFloor; }
+		vector<LiftTask> get_schedule();
 #endif
 
 	private:
@@ -74,6 +78,6 @@ namespace LiftControl
 		set<int, FloorComparer>* m_pass2;
 		set<int, FloorComparer>* m_pass3;
 
-		void Initialize(int fromFloor, int toFloor);
+		void initialize(int from_floor, int to_floor);
 	};
 }
