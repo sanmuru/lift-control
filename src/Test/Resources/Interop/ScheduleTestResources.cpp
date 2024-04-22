@@ -2,14 +2,13 @@
 
 #include <assert.h>
 #include "ScheduleTestResources.h"
-#include "wrappers.internal.h"
+#include "ScheduleTestData.internal.h"
 
-using namespace System;
 using namespace LiftControl::UnitTests::Interop;
 
-static ScheduleTestData WrapScheduleTestData(IEnumerable^ enumerable)
+static ScheduleTestData WrapScheduleTestData(Generic::IEnumerable<cli::array<Object^>^>^ enumerable)
 {
-	return new IEnumerableReference(enumerable);
+	return new ScheduleTestDataIEnumerableWrapperSequence(enumerable);
 }
 
 ScheduleTestData ScheduleTestResources::GetSingleTaskTestData()
@@ -31,4 +30,12 @@ ScheduleTestData ScheduleTestResources::GetRandomTasksTestData(
 		sample_count,
 		min_level_count, max_level_count,
 		min_guest_count, max_uest_count));
+}
+
+void ScheduleTestResources::VerifySchedule(Schedule actual, int at_floor, GuestTaskSequence tasks)
+{
+}
+
+void ScheduleTestResources::VerifySchedule(Schedule expected, Schedule actual, int at_floor, GuestTaskSequence tasks)
+{
 }

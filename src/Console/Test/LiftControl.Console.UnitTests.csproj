@@ -8,7 +8,7 @@
     <IsPackable>false</IsPackable>
     <IsTestProject>true</IsTestProject>
   </PropertyGroup>
-  
+
   <ItemGroup>
     <Using Include="Xunit" />
   </ItemGroup>
@@ -21,8 +21,9 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\..\..\Test\Resources\Portable\LiftControl.TestResources.csproj" />
-    <ProjectReference Include="..\Portable\LiftControl.csproj" />
+    <ProjectReference Include="..\..\Core\Managed\Portable\LiftControl.csproj" ReferenceOutputAssembly="False" />
+    <ProjectReference Include="..\..\Core\Unmanaged\Portable\LiftControl.Win32.vcxproj" ReferenceOutputAssembly="False" />
+    <ProjectReference Include="..\..\Test\Resources\Portable\LiftControl.TestResources.csproj" />
   </ItemGroup>
 
 </Project>

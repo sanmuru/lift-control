@@ -1,5 +1,8 @@
-﻿using System.Diagnostics;
+﻿using System.Collections.Generic;
+using System.Diagnostics;
+using Xunit;
 using GuestTask = (int fromFloor, int toFloor);
+using LiftTask = (int floor, int direction);
 
 namespace LiftControl.UnitTests;
 
@@ -90,5 +93,78 @@ public static class ScheduleTestResources
 
             yield return new object[] { atFloor, tasks };
         }
+    }
+
+    public static void VerifySchedule(
+        IEnumerable<int>? expected,
+        IEnumerable<int> actual,
+        int atFloor, IEnumerable<GuestTask> tasks)
+    {
+        if (expected is not null)
+        {
+            Assert.Equal(expected, actual);
+        }
+        else
+        {
+            var outList = new HashSet<GuestTask>(tasks);
+            var inList = new HashSet<GuestTask>();
+
+            int previousFloor = atFloor;
+            int previousDirection = default;
+            int directionChanged = 0;
+            foreach (var (floor, direction) in ScheduleToGustTasks(actual))
+            {
+                var enter = (from task in outList
+                             let guestDirection = task.fromFloor.CompareTo(task.toFloor)
+                             let canEnter = guestDirection == direction
+                             where task.fromFloor == floor && canEnter
+                             select task).ToArray();
+                var leave = (from task in inList where task.toFloor == floor select task).ToArray();
+                Assert.True(enter.Length != 0 || leave.Length != 0); // otherwise the stop makes no sense.
+
+                inList.ExceptWith(leave);
+                inList.UnionWith(enter);
+                outList.ExceptWith(enter);
+
+                if (directionChanged == 0)
+                {
+                    directionChanged = 1; // initialize.
+                }
+                else
+                {
+                    if (previousDirection != default && direction != default && previousDirection != direction)
+                    {
+                        directionChanged++;
+                        Assert.False(directionChanged > 3); // too many passes, not optimistic.
+                    }
+                }
+                previousDirection = direction;
+                previousFloor = floor;
+            }
+
+            Assert.Empty(outList);
+            Assert.Empty(inList);
+        }
+    }
+
+    public static IEnumerable<GuestTask> ScheduleToGustTasks(IEnumerable<int> schedule)
+    {
+        int? previous = null;
+        foreach (var floor in schedule)
+        {
+            if (!previous.HasValue)
+            {
+                previous = floor;
+                continue;
+            }
+            else if (previous.Value == floor)
+            {
+                continue;
+            }
+            yield return (previous.Value, previous.Value.CompareTo(floor));
+            previous = floor;
+        }
+        Debug.Assert(previous.HasValue);
+        yield return (previous.Value, default);
     }
 }

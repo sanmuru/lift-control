@@ -20,6 +20,13 @@ namespace LiftControl
 					int sample_count,
 					int min_level_count, int max_level_count,
 					int min_guest_count, int max_guest_count);
+				static void VerifySchedule(
+					Schedule actual,
+					int at_floor, GuestTaskSequence tasks);
+				static void VerifySchedule(
+					Schedule expected,
+					Schedule actual,
+					int at_floor, GuestTaskSequence tasks);
 			};
 		}
 	}

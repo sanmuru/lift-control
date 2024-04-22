@@ -15,60 +15,63 @@ namespace LiftControl
 
 			struct ScheduleIterator
 			{
-				friend Schedule;
-
-				using iterator_concept = std::input_iterator_tag;
-				using iterator_category = std::input_iterator_tag;
-				using difference_type = IEnumeratorVersionType;
+				using iterator_concept = input_iterator_tag;
+				using iterator_category = input_iterator_tag;
 				using value_type = int;
 				using pointer = value_type*;
 				using reference = value_type&;
 
 				ScheduleIterator() = delete;
-				ScheduleIterator(IEnumeratorReference* pRef) : ScheduleIterator(pRef, IEnumeratorVersion_Init) {}
-				LIFTCONTROL_TESTRESOURCES_INTEROP_API ScheduleIterator(const ScheduleIterator* other) :
-					m_pRef(other->m_pRef),
-					m_version(other->m_version),
-					m_current(nullptr)
-				{}
-				LIFTCONTROL_TESTRESOURCES_INTEROP_API ~ScheduleIterator();
+				ScheduleIterator(iterator_base<value_type>* underlying) : m_underlying(shared_ptr<iterator_base<value_type>>(underlying)) {}
+				~ScheduleIterator() { this->m_underlying.reset(); }
 
-				LIFTCONTROL_TESTRESOURCES_INTEROP_API ScheduleIterator& operator++() noexcept;
-				LIFTCONTROL_TESTRESOURCES_INTEROP_API reference operator*() noexcept;
+				ScheduleIterator& operator++() noexcept
+				{
+					this->m_underlying->move_next();
+					return *this;
+				}
+				reference operator*() noexcept { return *this->m_underlying->current(); }
 
 				friend bool operator==(const ScheduleIterator& a, const ScheduleIterator& b) noexcept
 				{
-					if (a.m_version < IEnumeratorVersion_Min)
-						return b.m_version < IEnumeratorVersion_Min;
-					else if (b.m_version < IEnumeratorVersion_Min)
-						return a.m_version < IEnumeratorVersion_Min;
+					auto pa = a.m_underlying.get();
+					auto pb = b.m_underlying.get();
+					if (nullptr == pa)
+						return nullptr == pb;
+					else if (nullptr == pb)
+						return nullptr == pa;
 					else
-						return a.m_pRef == b.m_pRef && a.m_version == b.m_version;
+						return pa->equals(pb);
 				}
-				friend bool operator!=(const ScheduleIterator& a, const ScheduleIterator& b) noexcept { return !(a == b); };
+				friend bool operator!=(const ScheduleIterator& a, const ScheduleIterator& b) noexcept
+				{
+					auto pa = a.m_underlying.get();
+					auto pb = b.m_underlying.get();
+					if (nullptr == pa)
+						return nullptr != pb;
+					else if (nullptr == pb)
+						return nullptr != pa;
+					else
+						return !pa->equals(pb);
+				}
 
 			private:
-				std::shared_ptr<IEnumeratorReference> m_pRef;
-				difference_type m_version;
-				std::unique_ptr<value_type> m_current;
-
-				ScheduleIterator(IEnumeratorReference* pRef, difference_type version);
+				shared_ptr<iterator_base<value_type>> m_underlying;
 			};
 
 			struct Schedule
 			{
 				using iterator = ScheduleIterator;
-				using entry = int;
+				using entry = iterator::value_type;
 
 				Schedule() = delete;
-				Schedule(IEnumerableReference* pRef);
-				LIFTCONTROL_TESTRESOURCES_INTEROP_API Schedule(const Schedule& other) : m_pRef(other.m_pRef) {}
-				LIFTCONTROL_TESTRESOURCES_INTEROP_API ~Schedule();
-				LIFTCONTROL_TESTRESOURCES_INTEROP_API iterator begin();
-				LIFTCONTROL_TESTRESOURCES_INTEROP_API iterator end() { return iterator(nullptr, IEnumeratorVersion_End); }
+				Schedule(sequence_base<entry>* underlying) : m_underlying(shared_ptr<sequence_base<entry>>(underlying)) {}
+				~Schedule() { this->m_underlying.reset(); }
+				iterator begin() { return iterator(this->m_underlying->begin()); }
+				iterator end() { return iterator(this->m_underlying->end()); }
 
 			private:
-				std::shared_ptr<IEnumerableReference> m_pRef;
+				shared_ptr<sequence_base<entry>> m_underlying;
 			};
 		}
 	}

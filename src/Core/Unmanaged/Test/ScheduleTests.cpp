@@ -26,7 +26,7 @@ namespace Microsoft
 				{
 					auto& expected_It = expected_BIt;
 					auto& actual_It = actual_BIt;
-					IEnumeratorVersionType i = 0;
+					long long i = 0;
 					while (true)
 					{
 						bool expectedHasNext = expected_It != expected_EIt;
@@ -59,6 +59,7 @@ namespace Microsoft
 		}
 	}
 }
+
 namespace LiftControl
 {
 	namespace UnitTests

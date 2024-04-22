@@ -45,6 +45,15 @@
     <ClInclude Include="GuestTask.hash.h">
       <Filter>头文件</Filter>
     </ClInclude>
+    <ClInclude Include="GuestTask.internal.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="Schedule.internal.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="ScheduleTestData.internal.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="ScheduleTestResources.cpp">
@@ -54,15 +63,6 @@
       <Filter>源文件</Filter>
     </ClCompile>
     <ClCompile Include="pch.cpp">
-      <Filter>源文件</Filter>
-    </ClCompile>
-    <ClCompile Include="GuestTask.cpp">
-      <Filter>源文件</Filter>
-    </ClCompile>
-    <ClCompile Include="ScheduleTestData.cpp">
-      <Filter>源文件</Filter>
-    </ClCompile>
-    <ClCompile Include="Schedule.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
   </ItemGroup>

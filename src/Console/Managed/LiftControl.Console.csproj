@@ -1,18 +1,16 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
+    <OutputType>Exe</OutputType>
     <TargetFramework>net8.0</TargetFramework>
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
-    <RootNamespace>LiftControl.UnitTests</RootNamespace>
+    <RootNamespace>LiftControl</RootNamespace>
+    <AssemblyName>mlc</AssemblyName>
   </PropertyGroup>
 
   <ItemGroup>
-    <Using Include="Xunit" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <PackageReference Include="xunit" Version="2.7.1" />
+    <ProjectReference Include="..\..\Core\Managed\Portable\LiftControl.csproj" />
   </ItemGroup>
 
 </Project>

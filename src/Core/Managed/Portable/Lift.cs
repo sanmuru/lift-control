@@ -3,9 +3,30 @@ using System.Diagnostics.CodeAnalysis;
 
 namespace LiftControl.Generation1;
 
-using LiftTask = (int floor, Lift.Direction direction);
+public enum Direction { Up = 1, Down = -1 }
 
-internal class Lift(int atFloor = 0)
+internal sealed class FloorComparer : IComparer<int>
+{
+    private readonly Direction _direction;
+
+    private FloorComparer(Direction direction) => this._direction = direction;
+
+    public static FloorComparer Up { get; } = new(Direction.Up);
+    public static FloorComparer Down { get; } = new(Direction.Down);
+
+    public int Compare(int x, int y) => x.CompareTo(y) * (int)this._direction;
+
+    public FloorComparer Reverse() => GetInstance((Direction)(-(int)this._direction));
+
+    public static FloorComparer GetInstance(Direction direction) => direction switch
+    {
+        Direction.Up => Up,
+        Direction.Down => Down,
+        _ => throw new ArgumentOutOfRangeException(nameof(direction)),
+    };
+}
+
+public class Lift(int atFloor = 0)
 {
     private int _atFloor = atFloor;
     private Direction? _direction;
@@ -14,57 +35,21 @@ internal class Lift(int atFloor = 0)
 #if DEBUG
     public int AtFloor => this._atFloor;
 
-    public IEnumerable<LiftTask> GetSchedule()
+    public IEnumerable<int> GetSchedule()
     {
         if (!this._direction.HasValue) yield break;
 
         this.CheckStatus();
 
-        int? previous = null;
         foreach (var pass in this._schedule)
         {
             foreach (var floor in pass)
             {
-                if (!previous.HasValue)
-                {
-                    previous = floor;
-                    continue;
-                }
-                else if (previous.Value == floor)
-                {
-                    continue;
-                }
-                yield return (previous.Value, GetDirection(previous.Value, floor));
-                previous = floor;
+                yield return floor;
             }
         }
-        Debug.Assert(previous.HasValue);
-        yield return (previous.Value, default);
     }
 #endif
-
-    public enum Direction { Up = 1, Down = -1 }
-
-    private sealed class FloorComparer : IComparer<int>
-    {
-        private readonly Direction _direction;
-
-        private FloorComparer(Direction direction) => this._direction = direction;
-
-        public static FloorComparer Up { get; } = new(Direction.Up);
-        public static FloorComparer Down { get; } = new(Direction.Down);
-
-        public int Compare(int x, int y) => x.CompareTo(y) * (int)this._direction;
-
-        public FloorComparer Reverse() => GetInstance((Direction)(-(int)this._direction));
-
-        public static FloorComparer GetInstance(Direction direction) => direction switch
-        {
-            Direction.Up => Up,
-            Direction.Down => Down,
-            _ => throw new ArgumentOutOfRangeException(nameof(direction)),
-        };
-    }
 
     [MemberNotNull(nameof(_direction), nameof(_schedule))]
     private void CheckStatus()
