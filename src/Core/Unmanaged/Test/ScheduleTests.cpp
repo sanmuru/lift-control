@@ -36,17 +36,17 @@ namespace Microsoft
 						{
 							if (false == actualHasNext) return;
 
-							Assert::AreEqual(*expected_It, *actual_It, std::format(L"At {0}: expected {1}, actual {2}", i, *expected_It, *actual_It).data());
+							Assert::AreEqual(*expected_It, *actual_It, format(L"At {0}: expected {1}, actual {2}", i, *expected_It, *actual_It).data());
 						}
 						else
 						{
 							if (true == expectedHasNext)
 							{
-								Assert::Fail(std::format(L"At {0}: expected {1}", i, *expected_It).data());
+								Assert::Fail(format(L"At {0}: expected {1}", i, *expected_It).data());
 							}
 							else // true == actualHasNext
 							{
-								Assert::Fail(std::format(L"At {0}: unexpected {1}", i, *actual_It).data());
+								Assert::Fail(format(L"At {0}: unexpected {1}", i, *actual_It).data());
 							}
 						}
 
@@ -86,7 +86,7 @@ namespace LiftControl
 				}
 			}
 
-			TEST_METHOD(TestRandomTasks)
+			TEST_METHOD(TestMultipleTasks)
 			{
 				auto data = ScheduleTestResources::GetRandomTasksTestData(
 					100,    // sampleCount
@@ -111,74 +111,19 @@ namespace LiftControl
 					lift->add(task.from_floor, task.to_floor);
 				}
 
+				vector<int> actual;
+				for (auto& liftTask : lift->get_schedule())
+				{
+					actual.push_back(liftTask.floor);
+				}
 				if (entry.has_schedule())
 				{
 					auto expected = entry.get_schedule();
-					std::vector<int> actual;
-					for (auto& liftTask : lift->get_schedule())
-					{
-						actual.push_back(liftTask.floor);
-					}
-					AssertEx::AreSequenceEqual(
-						expected.begin(), expected.end(),
-						actual.begin(), actual.end());
+					ScheduleTestResources::VerifySchedule(expected, actual, entry.at_floor, tasks);
 				}
 				else
 				{
-					std::unordered_set<GuestTask> outsideGuests, insideGuests;
-					outsideGuests.insert(tasks.begin(), tasks.end());
-
-					int previousFloor = lift->get_at_floor();
-					Direction previousDirection = (Direction)NULL;
-					int directionChanged = 0;
-					for (auto& liftTask : lift->get_schedule())
-					{
-						auto floor = liftTask.floor;
-						auto direction = liftTask.direction;
-						std::vector<GuestTask> enter;
-						for (auto& outsideTask : outsideGuests)
-						{
-							auto guestDirection = GetDirection(outsideTask.from_floor, outsideTask.to_floor);
-							auto canEnter = guestDirection == direction;
-							if (outsideTask.from_floor == floor && canEnter)
-								enter.push_back(outsideTask);
-						}
-						std::vector<GuestTask> leave;
-						for (auto& insideTask : insideGuests)
-						{
-							if (insideTask.to_floor == floor)
-								leave.push_back(insideTask);
-						}
-						Assert::IsTrue(!enter.empty() || !leave.empty()); // otherwise the stop makes no sense.
-
-						for (auto& leaveTask : leave)
-						{
-							insideGuests.erase(leaveTask);
-						}
-						for (auto& enterTask : enter)
-						{
-							insideGuests.insert(enterTask);
-							outsideGuests.erase(enterTask);
-						}
-
-						if (directionChanged == 0)
-						{
-							directionChanged = 1; // initialize.
-						}
-						else
-						{
-							if (previousDirection != 0 && direction != 0 && previousDirection != direction)
-							{
-								directionChanged++;
-								Assert::IsFalse(directionChanged > 3); // too many passes, not optimistic.
-							}
-						}
-						previousDirection = direction;
-						previousFloor = floor;
-					}
-
-					Assert::IsTrue(outsideGuests.empty());
-					Assert::IsTrue(insideGuests.empty());
+					ScheduleTestResources::VerifySchedule(actual, entry.at_floor, tasks);
 				}
 
 				delete lift;

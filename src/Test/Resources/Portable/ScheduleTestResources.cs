@@ -95,6 +95,8 @@ public static class ScheduleTestResources
         }
     }
 
+    public static void AssertFalse(bool condition) => Assert.False(condition);
+
     public static void VerifySchedule(
         IEnumerable<int>? expected,
         IEnumerable<int> actual,
@@ -164,7 +166,9 @@ public static class ScheduleTestResources
             yield return (previous.Value, previous.Value.CompareTo(floor));
             previous = floor;
         }
-        Debug.Assert(previous.HasValue);
-        yield return (previous.Value, default);
+        if (previous.HasValue)
+        {
+            yield return (previous.Value, default);
+        }
     }
 }

@@ -91,6 +91,64 @@ namespace LiftControl
 				shared_ptr<unmanaged_t> convert(Object^ obj) { return convert((managed_t)obj); }
 			};
 
+			template <typename iterator_t>
+			ref class IteratorWrapper abstract : public IEnumerator
+			{
+			public:
+				IteratorWrapper(iterator_t begin, iterator_t end) :
+					m_init(false),
+					m_current(new iterator_t(begin)), m_end(new iterator_t(end)) {}
+				virtual ~IteratorWrapper()
+				{
+					delete this->m_current;
+					delete this->m_end;
+				}
+
+				property Object^ Current
+				{
+					virtual Object^ get() sealed { return this->convert(*this->m_current); }
+				}
+				virtual bool MoveNext()
+				{
+					if (!this->m_init)
+					{
+						this->m_init = true;
+					}
+					else
+					{
+						++(*this->m_current);
+					}
+					return (*this->m_current) != (*this->m_end);
+				}
+				virtual void Reset() { throw gcnew NotSupportedException(); }
+
+			protected:
+				virtual System::Object^ convert(iterator_t iterator) = 0;
+
+				bool m_init;
+				iterator_t* m_current;
+				const iterator_t* m_end;
+			};
+
+			template <typename managed_t, typename iterator_t>
+			ref class IteratorGenericWrapper abstract : public IteratorWrapper<iterator_t>, Generic::IEnumerator<managed_t>
+			{
+			public:
+				IteratorGenericWrapper(iterator_t begin, iterator_t end) : IteratorWrapper<iterator_t>(begin, end) {}
+
+				property managed_t Current
+				{
+					virtual managed_t get() new sealed { return this->convert(*this->m_current); }
+				}
+
+			protected:
+				virtual Object^ _base_convert(iterator_t iterator) sealed = IteratorWrapper<iterator_t>::convert
+				{
+					return this->convert(iterator);
+				}
+				virtual managed_t convert(iterator_t iterator) new = 0;
+			};
+
 			// ==========================================
 
 			// IEnumerable
@@ -113,6 +171,48 @@ namespace LiftControl
 
 			protected:
 				Generic::IEnumerable<managed_t>^ get() { return (Generic::IEnumerable<managed_t>^)this->m_underlying.get(); }
+			};
+
+			template <typename container_t, typename iterator_t>
+			ref class ContainerWrapper abstract : public IEnumerable
+			{
+			public:
+				ContainerWrapper(container_t container) : m_container(new container_t(container)) {}
+				virtual ~ContainerWrapper()
+				{
+					delete this->m_container;
+				}
+
+				virtual IEnumerator^ GetEnumerator() sealed
+				{
+					return this->wrap_range(this->get_begin(), this->get_end());
+				}
+
+			protected:
+				container_t* m_container;
+
+				virtual IteratorWrapper<iterator_t>^ wrap_range(iterator_t begin, iterator_t end) = 0;
+				virtual iterator_t get_begin() { return this->m_container->begin(); }
+				virtual iterator_t get_end() { return this->m_container->end(); }
+			};
+
+			template <typename managed_t, typename container_t, typename iterator_t = container_t::iterator>
+			ref class ContainerGenericWrapper abstract : public ContainerWrapper<container_t, iterator_t>, Generic::IEnumerable<managed_t>
+			{
+			public:
+				ContainerGenericWrapper(container_t container) : ContainerWrapper<container_t, iterator_t>(container) {}
+
+				virtual Generic::IEnumerator<managed_t>^ GetEnumerator() new sealed
+				{
+					return this->wrap_range(this->get_begin(), this->get_end());
+				}
+
+			protected:
+				virtual IteratorWrapper<iterator_t>^ _base_wrap_range(iterator_t begin, iterator_t end) sealed = ContainerWrapper<container_t, iterator_t>::wrap_range
+				{
+					return this->wrap_range(begin, end);
+				}
+				virtual IteratorGenericWrapper<managed_t, iterator_t>^ wrap_range(iterator_t begin, iterator_t end) new = 0;
 			};
 
 			// ==========================================

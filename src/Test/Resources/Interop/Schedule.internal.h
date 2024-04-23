@@ -11,6 +11,8 @@ namespace LiftControl
 	{
 		namespace Interop
 		{
+			typedef Generic::IEnumerable<int>^ ScheduleSequence_managed_t;
+
 			// iterator
 
 			class ScheduleIEnumeratorWrapperIterator : public GenericIEnumeratorWrapper<int, int>
@@ -51,6 +53,29 @@ namespace LiftControl
 
 				iterator_base<int>* begin() { return new ScheduleIEnumeratorWrapperIterator(this->get()->GetEnumerator()); }
 				iterator_base<int>* end() { return new end_iterator_base<int>(); }
+			};
+
+			template <typename iterator_t>
+			ref class ScheduleIteratorWrapper : public IteratorGenericWrapper<int, iterator_t>
+			{
+			public:
+				ScheduleIteratorWrapper(iterator_t begin, iterator_t end) : IteratorGenericWrapper<int, iterator_t>(begin, end) {}
+
+			protected:
+				virtual int convert(iterator_t iterator) sealed override { return *iterator; }
+			};
+
+			template <typename container_t, typename iterator_t = container_t::iterator>
+			ref class ScheduleSequenceWrapper : public ContainerGenericWrapper<int, container_t, iterator_t>
+			{
+			public:
+				ScheduleSequenceWrapper(container_t container) : ContainerGenericWrapper<int, container_t, iterator_t>(container) {}
+
+			protected:
+				virtual IteratorGenericWrapper<int, iterator_t>^ wrap_range(iterator_t begin, iterator_t end) sealed override
+				{
+					return gcnew ScheduleIteratorWrapper<iterator_t>(begin, end);
+				}
 			};
 
 		}

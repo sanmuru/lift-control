@@ -11,23 +11,23 @@ namespace LiftControl
 	{
 		namespace Interop
 		{
-			class LIFTCONTROL_TESTRESOURCES_INTEROP_API ScheduleTestResources
+			namespace ScheduleTestResources
 			{
-			public:
-				static ScheduleTestData GetSingleTaskTestData();
-				static ScheduleTestData GetDoubleTasksTestData();
-				static ScheduleTestData GetRandomTasksTestData(
+				LIFTCONTROL_TESTRESOURCES_INTEROP_API ScheduleTestData GetSingleTaskTestData();
+				LIFTCONTROL_TESTRESOURCES_INTEROP_API ScheduleTestData GetDoubleTasksTestData();
+				LIFTCONTROL_TESTRESOURCES_INTEROP_API ScheduleTestData GetRandomTasksTestData(
 					int sample_count,
 					int min_level_count, int max_level_count,
 					int min_guest_count, int max_guest_count);
-				static void VerifySchedule(
-					Schedule actual,
+
+				LIFTCONTROL_TESTRESOURCES_INTEROP_API void VerifySchedule(
+					vector<int> actual,
 					int at_floor, GuestTaskSequence tasks);
-				static void VerifySchedule(
+				LIFTCONTROL_TESTRESOURCES_INTEROP_API void VerifySchedule(
 					Schedule expected,
-					Schedule actual,
+					vector<int> actual,
 					int at_floor, GuestTaskSequence tasks);
-			};
+			}
 		}
 	}
 }

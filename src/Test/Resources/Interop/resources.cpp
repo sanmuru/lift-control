@@ -5,6 +5,7 @@
 #include "ScheduleTestData.internal.h"
 
 using namespace LiftControl::UnitTests::Interop;
+using namespace LiftControl::UnitTests::Interop::ScheduleTestResources;
 
 static ScheduleTestData WrapScheduleTestData(Generic::IEnumerable<cli::array<Object^>^>^ enumerable)
 {
@@ -30,12 +31,4 @@ ScheduleTestData ScheduleTestResources::GetRandomTasksTestData(
 		sample_count,
 		min_level_count, max_level_count,
 		min_guest_count, max_uest_count));
-}
-
-void ScheduleTestResources::VerifySchedule(Schedule actual, int at_floor, GuestTaskSequence tasks)
-{
-}
-
-void ScheduleTestResources::VerifySchedule(Schedule expected, Schedule actual, int at_floor, GuestTaskSequence tasks)
-{
 }
