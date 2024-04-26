@@ -21,12 +21,12 @@ public class ScheduleTests
         VerifySchedule(atFloor, tasks, schedule);
     }
 
-    [MemberData(memberName: nameof(ScheduleTestResources.GetRandomTaskTestData), parameters: [
-        100,      // sampleCount
-        100,     // minLevelCount
+    [MemberData(memberName: nameof(ScheduleTestResources.GetRandomTasksTestData), parameters: [
+        100,    // sampleCount
+        100,    // minLevelCount
         500,    // maxLevelCount
         10,     // minGuestCount
-        100      // maxGuestCount
+        100     // maxGuestCount
         ], MemberType = typeof(ScheduleTestResources))]
     [Theory]
     public void TestMultipleTasks(int atFloor, IEnumerable<GuestTask> tasks)

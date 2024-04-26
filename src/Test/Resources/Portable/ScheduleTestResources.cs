@@ -66,7 +66,7 @@ public static class ScheduleTestResources
         yield return new object[] {3, new GuestTask[] { (5, 1), (2, 4) }, new int[] { 5, 1, 2, 4 } }; // at 3, from 3 to 5, get A, from 5 to 1, left A, from 1 to 2, get B, from 2 to 4, left B.
     }
 
-    public static IEnumerable<object[]> GetRandomTaskTestData(int sampleCount, int minLevelCount, int maxLevelCount, int minGuestCount, int maxGuestCount)
+    public static IEnumerable<object[]> GetRandomTasksTestData(int sampleCount, int minLevelCount, int maxLevelCount, int minGuestCount, int maxGuestCount)
     {
         Debug.Assert(sampleCount >= 0);
         Debug.Assert(minLevelCount >= 0);
@@ -94,8 +94,6 @@ public static class ScheduleTestResources
             yield return new object[] { atFloor, tasks };
         }
     }
-
-    public static void AssertFalse(bool condition) => Assert.False(condition);
 
     public static void VerifySchedule(
         IEnumerable<int>? expected,

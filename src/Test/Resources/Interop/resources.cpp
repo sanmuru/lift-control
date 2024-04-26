@@ -1,6 +1,6 @@
 ﻿#include "pch.h"
 
-#include <assert.h>
+#include <cassert>
 #include "ScheduleTestResources.h"
 #include "ScheduleTestData.internal.h"
 
@@ -27,7 +27,7 @@ ScheduleTestData ScheduleTestResources::GetRandomTasksTestData(
 	int min_level_count, int max_level_count,
 	int min_guest_count, int max_uest_count)
 {
-	return WrapScheduleTestData(LiftControl::UnitTests::ScheduleTestResources::GetRandomTaskTestData(
+	return WrapScheduleTestData(LiftControl::UnitTests::ScheduleTestResources::GetRandomTasksTestData(
 		sample_count,
 		min_level_count, max_level_count,
 		min_guest_count, max_uest_count));

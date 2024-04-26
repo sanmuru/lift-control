@@ -1,6 +1,6 @@
 #pragma once
 
-#include <assert.h>
+#include <cassert>
 #include <msclr\auto_gcroot.h>
 #include "wrappers.h"
 

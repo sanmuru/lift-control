@@ -4,9 +4,11 @@
     <TargetFramework>net8.0</TargetFramework>
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
+    <CopyLocalLockFileAssemblies>true</CopyLocalLockFileAssemblies>
 
     <IsPackable>false</IsPackable>
     <IsTestProject>true</IsTestProject>
+    <RunPostBuildEvent>OnBuildSuccess</RunPostBuildEvent>
   </PropertyGroup>
 
   <ItemGroup>
@@ -21,9 +23,18 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\..\Core\Managed\Portable\LiftControl.csproj" ReferenceOutputAssembly="False" />
-    <ProjectReference Include="..\..\Core\Unmanaged\Portable\LiftControl.Win32.vcxproj" ReferenceOutputAssembly="False" />
+    <ProjectReference Include="..\Managed\LiftControl.Console.csproj" ReferenceOutputAssembly="False" />
+    <ProjectReference Include="..\Unmanaged\LiftControl.Console.Win32.vcxproj" ReferenceOutputAssembly="False" />
     <ProjectReference Include="..\..\Test\Resources\Portable\LiftControl.TestResources.csproj" />
   </ItemGroup>
+
+  <Target Name="CopyUmlc" AfterTargets="BeforeBuild">
+    <PropertyGroup>
+      <UnmanagedPlatform Condition="'$(Platform)' == 'AnyCPU'">x64</UnmanagedPlatform>
+      <UnmanagedPlatform Condition="'$(Platform)' != 'AnyCPU'">$(Platform)</UnmanagedPlatform>
+    </PropertyGroup>
+    <Exec Command="copy $(ArtifactsDir)bin\$(Configuration)\LiftControl.Console\$(TargetFramework)\* $(ArtifactsDir)bin\$(Configuration)\$(MSBuildProjectName)\$(TargetFramework)\" />
+    <Exec Command="copy $(ArtifactsDir)bin\$(Configuration)\LiftControl.Console.Win32\$(UnmanagedPlatform)\* $(ArtifactsDir)bin\$(Configuration)\$(MSBuildProjectName)\$(TargetFramework)\" />
+  </Target>
 
 </Project>

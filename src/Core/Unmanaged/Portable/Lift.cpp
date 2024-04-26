@@ -3,11 +3,11 @@
 #include <cassert>
 #include "Lift.h"
 
-using namespace LiftControl;
+using namespace LiftControl::Generation1;
 
-vector<LiftTask> Lift::get_schedule()
+vector<int> Lift::get_schedule()
 {
-    vector<LiftTask> result;
+    vector<int> result;
     if (NULL == this->m_direction)
     {
         return result;
@@ -19,24 +19,11 @@ vector<LiftTask> Lift::get_schedule()
         assert(nullptr != this->m_pass3);
     }
 
-    int previous_floor = 0;
-    bool flag = false;
     auto pass = this->m_pass1;
     LoopStart:
     for (auto floor : *pass)
     {
-        if (false == flag)
-        {
-            flag = true;
-            previous_floor = floor;
-            continue;
-        }
-        else if (previous_floor == floor)
-        {
-            continue;
-        }
-        result.push_back(LiftTask(previous_floor, GetDirection(previous_floor, floor)));
-        previous_floor = floor;
+        result.push_back(floor);
     }
     if (pass == this->m_pass1)
     {
@@ -51,7 +38,6 @@ vector<LiftTask> Lift::get_schedule()
     else
     {
         assert(pass = this->m_pass3);
-        result.push_back(LiftTask(previous_floor, (Direction)NULL));
     }
 
     return result;

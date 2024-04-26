@@ -1,6 +1,6 @@
 #pragma once
 
-#include <assert.h>
+#include <cassert>
 #include <queue>
 #include <set>
 
@@ -14,70 +14,67 @@ using namespace std;
 
 namespace LiftControl
 {
-	enum Direction { UP = 1, DOWN = -1 };
-
-	static Direction GetDirection(int from_floor, int at_floor)
+	namespace Generation1
 	{
-		assert(from_floor != at_floor);
-		return from_floor < at_floor ? Direction::UP : Direction::DOWN;
-	}
+		enum Direction { UP = 1, DOWN = -1 };
 
-	struct FloorComparer
-	{
-		explicit FloorComparer(Direction d) : m_direction(d) {}
-
-		bool operator()(const int& i1, const int& i2) const
+		static Direction GetDirection(int from_floor, int at_floor)
 		{
-			if (Direction::UP == this->m_direction)
-			{
-				return i1 < i2;
-			}
-			else
-			{
-				return i2 < i1;
-			}
+			assert(from_floor != at_floor);
+			return from_floor < at_floor ? Direction::UP : Direction::DOWN;
 		}
 
-		FloorComparer reverse() const
+		struct FloorComparer
 		{
-			return FloorComparer((Direction)-(int)this->m_direction);
-		}
+			explicit FloorComparer(Direction d) : m_direction(d) {}
 
-	private:
-		const Direction m_direction;
-	};
+			bool operator()(const int& i1, const int& i2) const
+			{
+				if (Direction::UP == this->m_direction)
+				{
+					return i1 < i2;
+				}
+				else
+				{
+					return i2 < i1;
+				}
+			}
 
-	struct LiftTask
-	{
-		const int floor;
-		const Direction direction;
-	};
+			FloorComparer reverse() const
+			{
+				return FloorComparer((Direction)-(int)this->m_direction);
+			}
 
-	class LIFTCONTROL_API Lift
-	{
-	public:
-		explicit Lift(int atFloor) : m_atFloor(atFloor),
-			m_direction((Direction)0),
-			m_pass1(nullptr),
-			m_pass2(nullptr),
-			m_pass3(nullptr)
-		{}
-		~Lift();
+		private:
+			const Direction m_direction;
+		};
 
-		void add(int from_floor, int to_floor);
+		class LIFTCONTROL_API Lift
+		{
+		public:
+			explicit Lift(int atFloor) : m_atFloor(atFloor),
+				m_direction((Direction)0),
+				m_pass1(nullptr),
+				m_pass2(nullptr),
+				m_pass3(nullptr)
+			{}
+			~Lift();
+
+			void add(int from_floor, int to_floor);
 
 #if _DEBUG
-		int get_at_floor() { return this->m_atFloor; }
-		vector<LiftTask> get_schedule();
+			int get_at_floor() { return this->m_atFloor; }
+			vector<int> get_schedule();
 #endif
 
-	private:
-		int m_atFloor;
-		Direction m_direction;
-		set<int, FloorComparer>* m_pass1;
-		set<int, FloorComparer>* m_pass2;
-		set<int, FloorComparer>* m_pass3;
+		private:
+			int m_atFloor;
+			Direction m_direction;
+			set<int, FloorComparer>* m_pass1;
+			set<int, FloorComparer>* m_pass2;
+			set<int, FloorComparer>* m_pass3;
 
-		void initialize(int from_floor, int to_floor);
-	};
+			void initialize(int from_floor, int to_floor);
+		};
+	}
 }

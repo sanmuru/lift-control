@@ -1,22 +1,73 @@
-using System.Diagnostics;
-using LiftControl.Generation1;
 using LiftControl.UnitTests;
+using GuestTask = (int fromFloor, int toFloor);
 
 namespace LiftControl.Console.UnitTests;
 
-public class Generation1Tests
+public class Generation1Tests : TestBase
 {
     [MemberData(memberName: nameof(ScheduleTestResources.GetSingleTaskTestData), MemberType = typeof(ScheduleTestResources))]
     [Theory]
-    public void TestSingleTask_Managed(int atFloor, IEnumerable<(int fromFloor, int toFloor)> tasks, IEnumerable<int> schedule)
+    public void TestSingleTask_Managed(int atFloor, IEnumerable<GuestTask> tasks, IEnumerable<int> schedule)
     {
-
+        VerifyOutput(managed: true, atFloor, tasks, schedule);
     }
 
-    private static void VerifyOutput(bool managed, int atFloor, IEnumerable<(int fromFloor, int toFloor)> tasks, IEnumerable<int> schedule)
+    [MemberData(memberName: nameof(ScheduleTestResources.GetSingleTaskTestData), MemberType = typeof(ScheduleTestResources))]
+    [Theory]
+    public void TestSingleTask_Unmanaged(int atFloor, IEnumerable<GuestTask> tasks, IEnumerable<int> schedule)
     {
-        string output = StartupProcess(managed, 1, InputSettings);
-        var schedule = output.Split();
+        VerifyOutput(managed: false, atFloor, tasks, schedule);
+    }
+
+    [MemberData(memberName: nameof(ScheduleTestResources.GetDoubleTasksTestData), MemberType = typeof(ScheduleTestResources))]
+    [Theory]
+    public void TestDoubleTasks_Managed(int atFloor, IEnumerable<GuestTask> tasks, IEnumerable<int> schedule)
+    {
+        VerifyOutput(managed: true, atFloor, tasks, schedule);
+    }
+
+    [MemberData(memberName: nameof(ScheduleTestResources.GetDoubleTasksTestData), MemberType = typeof(ScheduleTestResources))]
+    [Theory]
+    public void TestDoubleTasks_Unmanaged(int atFloor, IEnumerable<GuestTask> tasks, IEnumerable<int> schedule)
+    {
+        VerifyOutput(managed: false, atFloor, tasks, schedule);
+    }
+
+    [MemberData(memberName: nameof(ScheduleTestResources.GetRandomTasksTestData), parameters: [
+        100,    // sampleCount
+        100,    // minLevelCount
+        500,    // maxLevelCount
+        10,     // minGuestCount
+        100     // maxGuestCount
+        ], MemberType = typeof(ScheduleTestResources))]
+    [Theory]
+    public void TestMultipleTasks_Managed(int atFloor, IEnumerable<GuestTask> tasks)
+    {
+        VerifyOutput(managed: true, atFloor, tasks);
+    }
+
+    [MemberData(memberName: nameof(ScheduleTestResources.GetRandomTasksTestData), parameters: [
+        100,    // sampleCount
+        100,    // minLevelCount
+        500,    // maxLevelCount
+        10,     // minGuestCount
+        100     // maxGuestCount
+        ], MemberType = typeof(ScheduleTestResources))]
+    [Theory]
+    public void TestMultipleTasks_Unmanaged(int atFloor, IEnumerable<GuestTask> tasks)
+    {
+        VerifyOutput(managed: false, atFloor, tasks);
+    }
+
+    private static void VerifyOutput(bool managed, int atFloor, IEnumerable<GuestTask> tasks, IEnumerable<int>? schedule = null)
+    {
+        string output = StartupProcess(managed, generation: 1, InputSettings);
+        var actual = output.Split().Where(s => !string.IsNullOrEmpty(s)).Select(s =>
+        {
+            Assert.True(int.TryParse(s, out var i), $"Wrong output schedule format: \"{i}\"");
+            return i;
+        });
+        ScheduleTestResources.VerifySchedule(schedule, actual, atFloor, tasks);
 
         void InputSettings(StreamWriter writer)
         {
@@ -27,38 +78,5 @@ public class Generation1Tests
             }
             writer.WriteLine();
         }
-    }
-
-    private static string StartupProcess(bool managed, int generation, Action<StreamWriter> callback)
-    {
-        Debug.Assert(generation >= 1);
-
-        const string managedExecutionFileName = "mlc";
-        const string unmanagedExecutionFileName = "umlc";
-
-        var process = new Process
-        {
-            StartInfo = new()
-            {
-                FileName = managed ? managedExecutionFileName : unmanagedExecutionFileName,
-                ArgumentList =
-                {
-                    $"/g:{generation}"
-                },
-                UseShellExecute = false,
-                RedirectStandardInput = true,
-                RedirectStandardOutput = true,
-                RedirectStandardError = true,
-                CreateNoWindow = true,
-                WindowStyle = ProcessWindowStyle.Hidden
-            }
-        };
-        process.Start();
-
-        callback(process.StandardInput);
-        var result = process.StandardOutput.ReadToEnd();
-
-        process.WaitForExit(TimeSpan.FromSeconds(10));
-        return result;
     }
 }
