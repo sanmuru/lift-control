@@ -1,7 +1,5 @@
 global using GuestTask = (int fromFloor, int toFloor);
 using LiftControl.Generation1;
-using System.Diagnostics;
-using Xunit.Abstractions;
 
 namespace LiftControl.UnitTests;
 
